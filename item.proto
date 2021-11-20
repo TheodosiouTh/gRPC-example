@@ -1,0 +1,28 @@
+syntax="proto3";
+
+package item;
+
+option go_package= "./item";
+
+message Item {
+    int32 id = 1;
+    string name = 2;
+    int64 price = 3;
+}
+
+message Items{
+    repeated Item items = 1;
+}
+
+message Void {}
+
+message ItemId {
+    int32 id = 1;
+}
+
+service ItemService {
+   rpc Add(Item) returns (Items) {}
+   rpc List(Void) returns (Items) {}
+   rpc Find(ItemId) returns (Item){}
+   rpc Delete(ItemId) returns (Items){}
+}
