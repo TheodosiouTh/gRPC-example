@@ -17,9 +17,9 @@ func main() {
 		log.Fatalf("Could not connectto the Database: %v", err)
 	}
 
-	errorMessage := initializeServer()
-	if errorMessage != "" {
-		log.Fatalf(errorMessage)
+	err = initializeServer()
+	if err != nil {
+		log.Fatalf("%v", err)
 	}
 
 }
@@ -30,7 +30,7 @@ type todoServer struct {
 
 const PORT = ":8888"
 
-func initializeServer() string {
+func initializeServer() error {
 
 	server := grpc.NewServer()
 
@@ -39,15 +39,15 @@ func initializeServer() string {
 
 	listener, err := net.Listen("tcp", PORT)
 	if err != nil {
-		return fmt.Sprintf("could not listen to port %s: %v", PORT, err)
+		return fmt.Errorf("could not listen to port %s: %v", PORT, err)
 	}
 	log.Printf("listening to port %s", PORT)
 
 	err = server.Serve(listener)
 	if err != nil {
-		return fmt.Sprintf("Could not serve: %v", err)
+		return fmt.Errorf("could not serve: %v", err)
 	}
-	return ""
+	return nil
 }
 
 func (server todoServer) List(context.Context, *todo.Void) (*todo.Tasks, error) {
