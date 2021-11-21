@@ -1,0 +1,29 @@
+syntax="proto3";
+
+package todo;
+
+option go_package= "./todo";
+
+message Task {
+    uint64 id = 1;
+    string name = 2;
+    uint64 price = 3;
+}
+
+message Tasks{
+    repeated Task items = 1;
+}
+
+message Void {}
+
+message TaskId {
+    uint64 id = 1;
+}
+
+service Todo {
+    rpc List(Void) returns (Tasks) {}
+    rpc Find(TaskId) returns (Task){}
+    rpc Add(Task) returns (Task) {}
+    rpc Check(Task) returns (Task) {}
+    rpc Delete(TaskId) returns (Task){}
+}
