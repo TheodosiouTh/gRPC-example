@@ -1,7 +1,7 @@
 package db
 
 import (
-	"gRPC-example/todo"
+	"todo/todo"
 
 	"gorm.io/gorm"
 )

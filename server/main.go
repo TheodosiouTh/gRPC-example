@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"gRPC-example/server/db"
-	"gRPC-example/todo"
 	"log"
 	"net"
+	"todo/server/db"
+	"todo/todo"
 
 	"google.golang.org/grpc"
 )
