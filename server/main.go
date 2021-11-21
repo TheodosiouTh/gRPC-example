@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"gRPC-example/item"
+	"gRPC-example/server/db"
+	"gRPC-example/todo"
 	"log"
 	"net"
 
@@ -11,23 +12,30 @@ import (
 )
 
 func main() {
+	err := db.Init()
+	if err != nil {
+		log.Fatalf("Could not connectto the Database: %v", err)
+	}
+
 	errorMessage := initializeServer()
 	if errorMessage != "" {
 		log.Fatalf(errorMessage)
 	}
+
 }
 
-type itemsServer struct {
-	item.UnimplementedItemsServer
+type todoServer struct {
+	todo.UnimplementedTodoServer
 }
 
 const PORT = ":8888"
 
 func initializeServer() string {
+
 	server := grpc.NewServer()
 
-	var items itemsServer
-	item.RegisterItemsServer(server, items)
+	var todoService todoServer
+	todo.RegisterTodoServer(server, todoService)
 
 	listener, err := net.Listen("tcp", PORT)
 	if err != nil {
@@ -42,23 +50,47 @@ func initializeServer() string {
 	return ""
 }
 
-func (server itemsServer) Add(context.Context, *item.Item) (*item.Item, error) {
-	fmt.Println("Add")
-	return &item.Item{}, nil
+func (server todoServer) List(context.Context, *todo.Void) (*todo.Tasks, error) {
+	foundTasks := db.FindAll()
+	tasksToReturn := convertTasksToMessage(foundTasks)
+	return tasksToReturn, nil
 }
 
-func (server itemsServer) List(context.Context, *item.Void) (*item.ItemList, error) {
-	fmt.Println("List")
-	return &item.ItemList{}, nil
+func (server todoServer) Find(ctx context.Context, todoId *todo.TaskId) (*todo.Task, error) {
+	foundItem := db.FindById(todoId)
+	return convertTaskToMessage(foundItem), nil
 }
 
-func (server itemsServer) Find(context.Context, *item.ItemId) (*item.Item, error) {
-	fmt.Println("Find")
-	return &item.Item{}, nil
+func (server todoServer) Add(ctx context.Context, task *todo.Task) (*todo.Task, error) {
+	createdTask := db.Create(task)
+	return convertTaskToMessage(createdTask), nil
 }
 
-func (server itemsServer) Delete(context.Context, *item.ItemId) (*item.ItemList, error) {
-	fmt.Println("Delete")
-	return &item.ItemList{}, nil
+func (server todoServer) Check(ctx context.Context, taskId *todo.TaskId) (*todo.Task, error) {
+	updatedTask := db.Check(taskId)
+	itemsToReturn := convertTaskToMessage(updatedTask)
+	return itemsToReturn, nil
+}
 
+func (server todoServer) Delete(ctx context.Context, taskId *todo.TaskId) (*todo.Tasks, error) {
+	foundTasks := db.Remove(taskId)
+	itemsToReturn := convertTasksToMessage(foundTasks)
+	return itemsToReturn, nil
+}
+
+/* HELPER FUNCTIONS*/
+func convertTasksToMessage(tasksToTransform []db.Task) *todo.Tasks {
+	var list todo.Tasks
+	for _, task := range tasksToTransform {
+		list.Tasks = append(list.Tasks, convertTaskToMessage(task))
+	}
+	return &list
+}
+
+func convertTaskToMessage(taskToTransform db.Task) *todo.Task {
+	return &todo.Task{
+		Id:   uint64(taskToTransform.Id),
+		Name: taskToTransform.Name,
+		Done: taskToTransform.Done,
+	}
 }
