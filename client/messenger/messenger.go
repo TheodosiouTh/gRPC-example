@@ -8,11 +8,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-const PORT = ":8888"
-
 func GetClient() todo.TodoClient {
 
-	connection, err := grpc.Dial(PORT, grpc.WithInsecure())
+	connection, err := grpc.Dial(":8080", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("could not connect to BE: %v", err)
 	}
