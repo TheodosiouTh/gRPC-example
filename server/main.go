@@ -4,18 +4,32 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
 	"todo/server/db"
 	"todo/todo"
 
 	"google.golang.org/grpc"
 )
 
-const PORT = ":8080"
+var port string
 
 func main() {
-	err := db.Init()
+
+	dbHost := "database"
+	port = os.Getenv("CONTAINER_SERVER_PORT")
+	dbName := os.Getenv("POSTGRES_DB")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+
+	dbPort, err := strconv.Atoi(os.Getenv("CONTAINER_DATABASE_PORT"))
 	if err != nil {
-		log.Fatalf("Could not connectto the Database: %v", err)
+		log.Fatalf("Could not convert  the Database: %v", err)
+	}
+
+	err = db.Init(dbHost, dbName, dbUser, dbPassword, dbPort)
+	if err != nil {
+		log.Fatalf("Could not connect to the Database: %v", err)
 	}
 
 	err = initializeServer()
@@ -36,11 +50,12 @@ func initializeServer() error {
 	var todoService todoServer
 	todo.RegisterTodoServer(server, todoService)
 
-	listener, err := net.Listen("tcp", PORT)
+	serverPort := fmt.Sprintf(":%s", port)
+	listener, err := net.Listen("tcp", serverPort)
 	if err != nil {
-		return fmt.Errorf("could not listen to port %s: %v", PORT, err)
+		return fmt.Errorf("could not listen to port %s: %v", serverPort, err)
 	}
-	log.Printf("listening to port %s", PORT)
+	log.Printf("listening to port %s", serverPort)
 
 	err = server.Serve(listener)
 	if err != nil {

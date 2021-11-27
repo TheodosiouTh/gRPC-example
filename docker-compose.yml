@@ -6,7 +6,7 @@ services:
     env_file:
       - .env
     ports:
-      - '5433:5432'
+      - '5433:${CONTAINER_DATABASE_PORT}'
     volumes:
       - data:/var/lib/postgresql/data
   server:
@@ -20,6 +20,6 @@ services:
     networks:
       - default
     ports:
-      - '8080:8080'
+      - '8080:${CONTAINER_SERVER_PORT}'
 volumes:
   data:
