@@ -19,5 +19,10 @@ func Init(host, dbname, user, password string, port int) error {
 	}
 
 	log.Println("Connection to DB established")
+	migrateModels()
 	return nil
+}
+
+func migrateModels() {
+	db.AutoMigrate(&Task{})
 }
